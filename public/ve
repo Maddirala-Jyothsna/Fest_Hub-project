@@ -1,0 +1,126 @@
+<?php 
+session_start();
+if (!isset($_SESSION['admin'])) {
+    header("Location: login.php");
+    exit();
+}
+
+include("../database/config.php");
+
+// Fetch all events
+$events_sql = "SELECT * FROM events ORDER BY created_at DESC";
+$events_result = $conn->query($events_sql);
+
+// Fetch latest reviews
+$reviews_sql = "SELECT * FROM reviews ORDER BY created_at DESC LIMIT 5";
+$reviews_result = $conn->query($reviews_sql);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - FestHub</title>
+  <style>
+    body { margin:0; font-family: "Poppins", sans-serif; display:flex; background:#f4f4f4; }
+    .sidebar {
+      width: 250px; background:#2ecc71; height:100vh; padding:20px; color:#fff;
+    }
+    .sidebar h2 { font-size:22px; margin-bottom:30px; }
+    .sidebar a {
+      display:block; padding:12px; margin:10px 0; text-decoration:none;
+      background:#27ae60; border-radius:8px; color:#fff; font-weight:500;
+    }
+    .sidebar a:hover { background:#1e8449; }
+    .content { flex:1; padding:30px; background:#f9f9f9; overflow-y:auto; }
+
+    h1 { font-size:24px; margin-bottom:10px; }
+    h2 { margin-top:30px; color:#333; }
+    table {
+      width:100%; border-collapse: collapse; margin-top:15px; background:#fff;
+      border-radius:10px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td { padding:14px; text-align:center; }
+    th { background:#2ecc71; color:#fff; }
+    tr:nth-child(even) { background:#f2f2f2; }
+    img { width:70px; height:70px; object-fit:cover; border-radius:8px; }
+    .actions a {
+      padding:6px 12px; border-radius:6px; font-size:14px;
+      text-decoration:none; margin:0 4px;
+    }
+    .edit { background:#2ecc71; color:#fff; }
+    .delete { background:#e74c3c; color:#fff; }
+    .review-card {
+      background:#fff; padding:15px; margin:10px 0; border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    }
+    .review-card strong { color:#2ecc71; }
+    .rating { color:gold; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="addevent.php">📅 Add Event</a>
+    <a href="addorganizer.php">👥 Add Organizers</a>
+    <a href="viewreviews.php">💬 View Reviews</a>
+    <a href="index.php">🚪 Logout</a>
+  </div>
+
+  <div class="content">
+    <h1>Welcome, <?php echo $_SESSION['admin']; ?> 👋</h1>
+    <p>Here are the latest updates from your events and reviews.</p>
+
+    <!-- Ongoing Events -->
+    <h2>📅 Ongoing Events</h2>
+    <table>
+      <tr>
+        <th>Poster</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Date</th>
+        <th>Location</th>
+        <th>Participants</th>
+        <th>Price</th>
+        <th>Organizer</th>
+        <th>Actions</th>
+      </tr>
+      <?php if ($events_result && $events_result->num_rows > 0) { 
+        while($row = $events_result->fetch_assoc()) { ?>
+        <tr>
+          <td><?php if (!empty($row['poster'])) { ?>
+            <img src="../<?php echo $row['poster']; ?>" alt="Poster">
+          <?php } else { echo "No Poster"; } ?></td>
+          <td><?php echo htmlspecialchars($row['name']); ?></td>
+          <td><?php echo htmlspecialchars($row['category']); ?></td>
+          <td><?php echo htmlspecialchars($row['event_date']); ?></td>
+          <td><?php echo htmlspecialchars($row['location']); ?></td>
+          <td><?php echo htmlspecialchars($row['participants']); ?></td>
+          <td><?php echo htmlspecialchars($row['price']); ?></td>
+          <td><?php echo htmlspecialchars($row['organizer']); ?></td>
+          <td class="actions">
+            <a href="editevent.php?id=<?php echo $row['id']; ?>" class="edit">Edit</a>
+            <a href="deleteevent.php?id=<?php echo $row['id']; ?>" class="delete" onclick="return confirm('Delete this event?')">Delete</a>
+          </td>
+        </tr>
+      <?php } } else { ?>
+        <tr><td colspan="9">No events available</td></tr>
+      <?php } ?>
+    </table>
+
+    <!-- Latest Reviews -->
+    <h2>💬 Latest Reviews</h2>
+    <?php if ($reviews_result && $reviews_result->num_rows > 0) {
+      while($rev = $reviews_result->fetch_assoc()) { ?>
+        <div class="review-card">
+          <p><strong><?php echo htmlspecialchars($rev['name']); ?></strong> (<?php echo htmlspecialchars($rev['email']); ?>)</p>
+          <p>Event: <?php echo htmlspecialchars($rev['event_name']); ?></p>
+          <p class="rating">Rating: <?php echo str_repeat("★", $rev['rating']); ?></p>
+          <p><?php echo htmlspecialchars($rev['message']); ?></p>
+          <small><?php echo $rev['created_at']; ?></small>
+        </div>
+    <?php } } else { ?>
+      <p>No reviews yet.</p>
+    <?php } ?>
+  </div>
+</body>
+</html>

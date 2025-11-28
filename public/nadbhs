@@ -1,0 +1,330 @@
+<?php
+include __DIR__ . '/../database/config.php';
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>colorido- College Events</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: #f0f4f8; color: #333; line-height: 1.6; transition: background 1s ease-in-out; }
+
+    /* FIX: Remove any stray button injected at top-left */
+    body > button {
+        display: none !important;
+    }
+
+    /* BACKGROUND AFTER SCROLL */
+    body.scrolled-bg {
+      background: url('../assets/images/start_main1.jpg') no-repeat center/cover fixed;
+    }
+
+    /* College Header */
+    .college-header {
+      background: #fff;
+      border-bottom: 3px solid #ff6b35;
+      text-align: center;
+      padding: 15px 20px;
+      position: relative;
+    }
+    .college-header img {
+      height: 100px;
+      width: 100px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    .college-header h1 {
+      display: inline-block;
+      font-size: 50px;
+      font-weight: 700;
+      color: #a2130bff;
+      margin: 0;
+      vertical-align: middle;
+    }
+    .college-header p {
+      font-size: 25px;
+      color: #333;
+      margin: 5px 0 0;
+    }
+    .college-header .badges { margin-top: 8px; }
+    .college-header .badge {
+      display: inline-block;
+      background: #1976d2;
+      color: #fff;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      margin: 0 4px;
+    }
+    .college-header .badge.green { background: #2e7d32; }
+
+    /* Navbar */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 50px; background: linear-gradient(135deg, #1e3c72, #2a5298); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header .logo { font-size: 28px; font-weight: 600; }
+    .header .logo span { color: #ff9526; }
+    .header nav ul { list-style: none; display: flex; gap: 25px; }
+    .header nav ul li a { color: #fff; text-decoration: none; font-weight: 500; transition: color 0.3s; }
+    .header nav ul li a:hover { color: #ff9526; }
+    .btn-login { background: #ff6b35; color: #fff; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: bold; transition: background 0.3s, transform 0.3s; }
+    .btn-login:hover { background: #ff8535; transform: translateY(-2px); }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      background: url('../assets/images/start_main1.jpg') no-repeat center center/cover;
+      height: 90vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #fff;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+    .hero-overlay { position: relative; z-index: 2; padding: 0 20px; }
+    .hero h1 { font-size: 60px; margin-bottom: 20px; color: #fff; }
+    .hero h1 span { color: #ff9526; }
+    .hero p { font-size: 20px; max-width: 700px; margin: 0 auto 30px; }
+
+    .btn-hero {
+      color: #fff;
+      padding: 14px 40px;
+      border-radius: 30px;
+      font-size: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: transform 0.3s, background 0.3s;
+    }
+    .btn-hero:hover { transform: translateY(-3px); background:#ff6b35; }
+
+    /* Animations */
+    .animate-text { opacity: 0; transform: translateY(-30px); animation: fadeSlide 1s ease forwards; }
+    .animate-sub { opacity: 0; transform: translateY(20px); animation: fadeSlide 1s ease 0.5s forwards; }
+    .animate-btn { opacity: 0; transform: scale(0.8); animation: fadeGrow 1s ease 1s forwards; }
+
+    @keyframes fadeSlide { to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeGrow { to { opacity: 1; transform: scale(1); } }
+
+    /* Categories */
+    .categories { text-align: center; padding: 60px 20px; }
+    .categories h2 { font-size: 32px; margin-bottom: 12px; color: #1e3c72; }
+    .categories p { font-size: 16px; color: #555; margin-bottom: 20px; }
+    .filters { display: inline-flex; flex-wrap: wrap; gap: 12px; }
+    .filters button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      background: #e0e0e0;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+    .filters button:hover { background: #d0d0d0; }
+    .filters .active { background: #1e3c72; color: #fff; }
+
+    /* Events */
+    .event-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      padding: 30px 50px;
+    }
+    .event-card {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+    }
+    .event-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+
+    .event-img img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    .event-card:hover .event-img img { transform: scale(1.05); }
+
+    .tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #ff6b35;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .event-info { padding: 20px; }
+    .event-info h3 { font-size: 22px; margin-bottom: 10px; color: #1e3c72; }
+    .event-info p { font-size: 15px; color: #555; margin-bottom: 14px; }
+
+    /* Footer */
+    footer {
+      margin-top: 60px;
+      padding: 30px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- College Header -->
+  <div class="college-header">
+    <img src="../assets/images/rvrlogo.jpeg">
+    <h1>R.V.R. & J.C. COLLEGE OF ENGINEERING</h1>
+    <p>(AUTONOMOUS) | EAPCET Code: RVJC<br>Affiliated to ANU</p>
+    <div class="badges">
+      <div class="badge">NBA</div>
+      <div class="badge green">NAAC A+</div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <header class="header">
+    <div class="logo">Colorido <span>Events</span></div>
+    <nav>
+      <ul>
+        <li><a href="#events">Events</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <a href="login.html" class="btn-login">Admin Login</a>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1 class="animate-text">COLORIDO<span>2K25</span></h1>
+        <p class="animate-sub">Explore, register, and be part of amazing events around you.</p>
+        <a href="#events" class="btn-hero animate-btn">Explore Events</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <h2>Upcoming Events</h2>
+    <p>Filter by category:</p>
+    <div class="filters">
+      <button class="active">All</button>
+      <button>Technology</button>
+      <button>Cultural</button>
+      <button>Sports</button>
+      <button>Arts</button>
+    </div>
+  </section>
+
+  <!-- Events -->
+  <div class="event-container" id="events">
+    <?php
+    $sql = "SELECT * FROM events ORDER BY created_at DESC";
+    $result = $conn->query($sql);
+
+    if ($result && $result->num_rows > 0) {
+      while ($row = $result->fetch_assoc()) {
+    ?>
+      <div class="event-card" data-category="<?php echo strtolower($row['category']); ?>">
+        <div class="event-img">
+          <img src="../<?php echo $row['poster']; ?>">
+          <span class="tag"><?php echo $row['category']; ?></span>
+        </div>
+        <div class="event-info">
+          <h3><?php echo $row['name']; ?></h3>
+          <p><?php echo $row['details']; ?></p>
+          <ul>
+            <li>🏫 <?php echo $row['college_name']; ?></li>
+            <li>📅 <?php echo $row['event_date']; ?></li>
+            <li>📍 <?php echo $row['location']; ?></li>
+            <li>👥 Max <?php echo $row['participants']; ?> participants</li>
+            <li>💰 <?php echo $row['price']; ?></li>
+          </ul>
+          <div class="organizer">👤 Organizer: <?php echo $row['organizer']; ?></div>
+          <a href="register.php?event_id=<?php echo $row['id']; ?>" class="btn">Register</a>
+        </div>
+      </div>
+    <?php
+      }
+    } else {
+      echo "<p style='text-align:center;'>No events available yet.</p>";
+    }
+    ?>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <i class="fa-solid fa-user"></i>
+        <h4>Cultural Events Head</h4>
+        <p>Prof. J. Ranga Raya Chowdary</p>
+      </div>
+      <div class="footer-col">
+        <i class="fa-solid fa-user-graduate"></i>
+        <h4>Principal</h4>
+        <p>Dr. Kolla Srinivas</p>
+      </div>
+    </div>
+    <p class="footer-bottom">© 2025 FestHub | Designed for College Events</p>
+  </footer>
+
+  <!-- Filters JS -->
+  <script>
+    const filterButtons = document.querySelectorAll('.filters button');
+    const eventContainer = document.getElementById('events');
+    const allCards = Array.from(document.querySelectorAll('.event-card'));
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        const filter = button.textContent.toLowerCase();
+        eventContainer.innerHTML = "";
+
+        if (filter === "all") {
+          allCards.forEach(card => {
+            card.classList.remove("hide");
+            eventContainer.appendChild(card);
+          });
+        } else {
+          const filtered = allCards.filter(card => card.getAttribute("data-category") === filter);
+          const others = allCards.filter(card => card.getAttribute("data-category") !== filter);
+
+          filtered.forEach(card => { card.classList.remove("hide"); eventContainer.appendChild(card); });
+          others.forEach(card => { card.classList.add("hide"); eventContainer.appendChild(card); });
+        }
+      });
+    });
+  </script>
+
+  <!-- BACKGROUND CHANGE AFTER SCROLL -->
+  <script>
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 150) {
+        document.body.classList.add("scrolled-bg");
+      } else {
+        document.body.classList.remove("scrolled-bg");
+      }
+    });
+  </script>
+
+</body>
+</html>
